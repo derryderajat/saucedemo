@@ -21,10 +21,16 @@ jobs:
         run: npm ci
 
       - name: Create .env file from secrets
-        run: |
+        run: 
           echo "BASE_URL=${{ secrets.BASE_URL }}" > .env
           echo "SAUCE_USERNAME=${{ secrets.SAUCE_USERNAME }}" >> .env
           echo "SAUCE_PASSWORD=${{ secrets.SAUCE_PASSWORD }}" >> .env
+
+      - name: Run Playwright tests with Allure reporter
+        run: npx playwright test
+
+      - name: Install Allure commandline
+        run: npm install -g allure-commandline
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
@@ -32,15 +38,18 @@ jobs:
         run: npx playwright test --reporter=html
         continue-on-error: true
 
-      - name: Upload Playwright HTML report as artifact
+      - name: Generate Allure HTML report
+        run: allure generate ./allure-results --clean -o ./allure-report
+
+      - name: Upload Allure HTML report as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report
-      - name: Deploy Playwright HTML report to GitHub Pages
+          name: allure-report
+          path: allure-report
+      - name: Deploy Allure HTML report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./playwright-report
+          publish_dir: ./allure-report
           publish_branch: gh-pages
           force_orphan: true

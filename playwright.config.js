@@ -1,3 +1,5 @@
+const { defineConfig } = require('@playwright/test');
+
 module.exports = {
   testDir: 'tests',
   timeout: 30000,
@@ -9,5 +11,5 @@ module.exports = {
     },
     screenshot:'on'
   },
-  reporter: [['list'], ['html', { output: 'test-results/report.html' }]],
+  reporter: [ ['allure-playwright']],
 };
