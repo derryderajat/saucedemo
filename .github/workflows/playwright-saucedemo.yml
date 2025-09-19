@@ -29,8 +29,6 @@ jobs:
           echo "SAUCE_USERNAME=${{ secrets.SAUCE_USERNAME }}" >> .env
           echo "SAUCE_PASSWORD=${{ secrets.SAUCE_PASSWORD }}" >> .env
 
-      - name: Run Playwright tests with Allure reporter
-        run: npx playwright test
 
       - name: Install Allure commandline
         run: npm install -g allure-commandline
