@@ -86,3 +86,49 @@ jobs:
           to: ${{ secrets.EMAIL_DESTINATION }}
           from: ${{ secrets.EMAIL_HOST }}
           secure: false
+      - name: Notify Teams with Allure report link
+        env:
+          REPORT_URL: ${{ env.REPORT_URL }}
+          RUN_URL: ${{ github.run_url }}
+        run: |
+          cat > payload.json <<EOF
+          {
+            "@type": "MessageCard",
+            "@context": "http://schema.org/extensions",
+            "summary": "Playwright Test Report",
+            "themeColor": "0076D7",
+            "title": "Playwright Tests - ${{ github.repository }}",
+            "sections": [
+              {
+                "activityTitle": "Test run finished",
+                "activitySubtitle": "Branch: ${{ github.ref_name }}",
+                "facts": [
+                  { "name": "Repository", "value": "${{ github.repository }}" },
+                  { "name": "Report", "value": "${{ env.REPORT_URL }}" },
+                  { "name": "Run", "value": "${{ github.run_url }}" }
+                ],
+                "text": "Click the button below to open the Allure report."
+              }
+            ],
+            "potentialAction": [
+              {
+                "@type": "OpenUri",
+                "name": "Open Allure Report",
+                "targets": [
+                  { "os": "default", "uri": "${{ env.REPORT_URL }}" }
+                ]
+              },
+              {
+                "@type": "OpenUri",
+                "name": "Open Workflow Run",
+                "targets": [
+                  { "os": "default", "uri": "${{ github.run_url }}" }
+                ]
+              }
+            ]
+          }
+          EOF
+
+          curl -H "Content-Type: application/json" \
+               -d @payload.json \
+               "${{ secrets.TEAMS_CHANNEL }}"
