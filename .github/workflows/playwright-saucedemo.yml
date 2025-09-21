@@ -72,8 +72,8 @@ jobs:
       - name: Send email notification with report link (SMTP)
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: ${{ secrets.EMAIL_HOST }}
-          server_port: ${{ secrets.SMTP_PORT }}
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: 587
           username: ${{ secrets.EMAIL_HOST }}
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "Daily Report: Testing Results Saucedemo"
