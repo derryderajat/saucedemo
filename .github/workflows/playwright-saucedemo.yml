@@ -84,6 +84,6 @@ jobs:
             Workflow run: ${{ github.run_url }}
           to: ${{ secrets.EMAIL_DESTINATION }}
           from: ${{ secrets.EMAIL_HOST }}
-          secure: true
+          secure: false
           attachments: allure-report.zip
           
