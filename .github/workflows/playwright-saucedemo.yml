@@ -82,8 +82,7 @@ jobs:
             Here is the result
             Allure report: ${{ env.REPORT_URL }}
             Workflow run: ${{ github.run_url }}
+
           to: ${{ secrets.EMAIL_DESTINATION }}
           from: ${{ secrets.EMAIL_HOST }}
           secure: false
-          attachments: allure-report.zip
-          
