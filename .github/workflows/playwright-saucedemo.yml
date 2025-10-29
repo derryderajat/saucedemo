@@ -6,12 +6,15 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 11 * * *'
+    - cron: '0 11 * * *' # setiap hari jam 18:00 WIB
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
     env:
       REPORT_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,52 +26,67 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Create .env file from secrets
-        run: 
+        run: |
           echo "BASE_URL=${{ secrets.BASE_URL }}" > .env
           echo "SAUCE_USERNAME=${{ secrets.SAUCE_USERNAME }}" >> .env
           echo "SAUCE_PASSWORD=${{ secrets.SAUCE_PASSWORD }}" >> .env
 
-
       - name: Install Allure commandline
         run: npm install -g allure-commandline
 
-      
+      # 🟩 Restore Allure History
+      - name: Restore previous Allure history
+        run: |
+          echo "Fetching previous history from gh-pages..."
+          git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }}.git gh-pages || echo "no previous report"
+          if [ -d "gh-pages/history" ]; then
+            mkdir -p ./allure-results/history
+            cp -r gh-pages/history ./allure-results/history
+            echo "✅ Previous history restored"
+          else
+            echo "⚠️ No previous history found"
+          fi
 
+      # Jalankan test
       - name: Run Playwright tests
-        run: npx playwright test 
+        run: npx playwright test
         continue-on-error: true
 
+      # Generate report baru dengan history
       - name: Generate Allure HTML report
-        run: allure generate ./allure-results --clean -o ./allure-report
-
-
-      - name: Zip Allure report
         run: |
-          if [ -d "./allure-report" ]; then
-            zip -r allure-report.zip allure-report
-          else
-            echo "no report to zip"
-          fi
+          allure generate ./allure-results --clean -o ./allure-report
+          echo "✅ Allure report generated"
+
+      # 🟨 Simpan kembali history untuk next run
+      - name: Preserve Allure history
+        run: |
+          mkdir -p ./allure-report/history
+          cp -r ./allure-results/history ./allure-report/history || echo "⚠️ No history to copy"
+          echo "✅ History preserved"
+
+      # Upload artifact (optional)
       - name: Upload Allure HTML report as artifact
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: | 
-            allure-report
-            allure-report.zip
+          path: allure-report
+
+      # Deploy ke GitHub Pages (tanpa hapus history)
       - name: Deploy Allure HTML report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./allure-report
           publish_branch: gh-pages
-          force_orphan: true
+          keep_files: true
 
+      # Email notifikasi hasil test
       - name: Send email notification with report link (SMTP)
         uses: dawidd6/action-send-mail@v3
         with:
@@ -78,14 +96,17 @@ jobs:
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "Daily Report: Testing Results Saucedemo"
           body: |
-            Dear Team.
-            Here is the result
-            Allure report: ${{ env.REPORT_URL }}
-            Workflow run: ${{ github.run_url }}
+            Dear Team,
+
+            Berikut hasil testing terbaru.
+            🔗 Allure report: ${{ env.REPORT_URL }}
+            🔗 Workflow run: ${{ github.run_url }}
 
           to: ${{ secrets.EMAIL_DESTINATION }}
           from: ${{ secrets.EMAIL_HOST }}
           secure: false
+
+      # Kirim notifikasi ke Teams
       - name: Notify Teams with Allure report link
         env:
           REPORT_URL: ${{ env.REPORT_URL }}
