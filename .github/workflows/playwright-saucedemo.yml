@@ -66,9 +66,13 @@ jobs:
       # 🟨 Simpan kembali history untuk next run
       - name: Preserve Allure history
         run: |
-          mkdir -p ./allure-report/history
-          cp -r ./allure-results/history ./allure-report/history || echo "⚠️ No history to copy"
-          echo "✅ History preserved"
+          if [ -d "./allure-report/history" ]; then
+            cp -r ./allure-report/history ./allure-results/history
+            echo "✅ History copied for next run"
+          else
+            echo "⚠️ No history folder found in new report"
+          fi
+
 
       # Upload artifact (optional)
       - name: Upload Allure HTML report as artifact
