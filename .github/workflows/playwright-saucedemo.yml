@@ -44,13 +44,22 @@ jobs:
         run: |
           echo "Fetching previous history from gh-pages..."
           git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }}.git gh-pages || echo "no previous report"
-          if [ -d "gh-pages/history" ]; then
+          
+          if [ -d "gh-pages/allure-report/history" ]; then
+            mkdir -p ./allure-results/history
+            cp -r gh-pages/allure-report/history ./allure-results/history
+            echo "✅ Restored history from gh-pages/allure-report/history"
+          elif [ -d "gh-pages/history" ]; then
             mkdir -p ./allure-results/history
             cp -r gh-pages/history ./allure-results/history
-            echo "✅ Previous history restored"
+            echo "✅ Restored history from gh-pages/history"
           else
             echo "⚠️ No previous history found"
           fi
+      
+          echo "📁 After restore, allure-results:"
+          ls -R ./allure-results || true
+
 
       # Jalankan test
       - name: Run Playwright tests
