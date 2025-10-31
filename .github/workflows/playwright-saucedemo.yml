@@ -59,7 +59,10 @@ jobs:
       
           echo "📁 After restore, allure-results:"
           ls -R ./allure-results || true
-
+      # add metadata
+      - name: Add Allure executor metadata
+        run: |
+          echo '{"name": "GitHub Actions", "type": "github", "buildOrder": '${{ github.run_number }}', "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' > ./allure-results/executor.json
 
       # Jalankan test
       - name: Run Playwright tests
