@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "scripts": {
   "test": "playwright test",
-  "allure:generate": "allure generate ./allure-results --clean -o ./allure-report",
+  "allure:generate": "allure generate ./allure-results -o ./allure-report",
   "allure:open": "allure open ./allure-report"
   },
   "dependencies": {
